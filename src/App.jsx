@@ -2,31 +2,43 @@ import "./App.css";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
-import { UserProvider } from "./contexts/context";
+
 import { Flip, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Home from "./components/Home";
 import Chatbar from "./components/Chatbar";
 import ChatSection from "./components/ChatSection";
-import { socket } from './socket'
+import { useEffect } from "react";
+import { connectSocket, getSocket } from "./socket.js";
+import { useUser } from './contexts/UseUser.jsx';
+// import { socket } from './socket'
 
 function App() {
-  socket.on('connect', ()=>{
-    console.log('socket connection')
-  })
+  // socket.on('connect', ()=>{
+  //   console.log('socket connection')
+  // })
+  const { setSocketInstance, socket , setEmail, activeChat} = useUser();
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      let tok = JSON.parse(token);
+      connectSocket(tok.token);
+      // Set the socket instance in the context
+      setSocketInstance(getSocket());
+      setEmail(tok.userId)
+    }
+  }, [setSocketInstance,setEmail]);
 
   return (
-    <UserProvider>
+   
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Chatbar/>}>
-            <Route path="/login" element={<Login/>}></Route>
-            <Route path="/signup" element={<Signup />}></Route>
-            <Route path="/chat" element={<ChatSection/>}></Route>
+          <Route path="/" element={<Login/>} />
+          <Route path="/signup" element={<Signup />}></Route>
+          <Route path="/chat" element={<Chatbar/>}>
+            <Route path="/chat/personalchat" element={socket && activeChat?<ChatSection/>:<p>loading...</p>}></Route>
           </Route>
-        </Routes>
-        <Routes>
-          <Route path="/home" element={<Home/>}></Route>
         </Routes>
         <ToastContainer
           position="top-center"
@@ -38,7 +50,7 @@ function App() {
           limit={1}
         />
       </BrowserRouter>
-    </UserProvider>
+   
   );
 }
 

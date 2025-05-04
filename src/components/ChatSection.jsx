@@ -3,16 +3,23 @@ import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import { useUser } from "../contexts/UseUser";
 
+// import User from "../../../chat-test-backend/models/userSchema";
+
 function ChatSection() {
-  const { socket } = useUser();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const {socket, email, activeChat} = useUser();
+  const [acitveRoom, setActiveRoom] = useState(null);
 
+  // console.log(socket)
+  
   useEffect(() => {
     // Listen for broadcasted messages from the server
-    socket.on("broadcast", (data) => {
-      console.log("Message from server:", data);
-      setMessages((prev) => [...prev, data]);
+    if(!socket) return;
+    socket.on("messageforwarded", (data) => {
+      console.log(data);
+      setActiveRoom(data.roomId);
+      setMessages((prev) => [...prev, data.response]);
     });
 
     // Cleanup the listener when the component unmounts
@@ -21,18 +28,51 @@ function ChatSection() {
     };
   }, [socket]);
 
+
+  useEffect(()=> {
+    // console.log("getting messages from server")
+    if(!socket) return;
+    socket.emit("getMessages", { email, activeChat });
+  },[setActiveRoom,socket,acitveRoom,activeChat,email])
+
+  useEffect(()=>{
+    if(!socket) return;
+    
+    socket.on("initalMessageGet", (data)=>{
+      console.log("initial message", data)
+      setMessages(data)
+    })
+  },[socket])
+
+
   function sendHandler(){ 
-    socket.emit("message", message);
+    const roomId = [email, activeChat].sort().join("_");
+    socket.emit("message", { message, User: email, reciever: activeChat, roomId });
+    setMessages((prev) => [...prev, { message, sender: email }]);
     setMessage("");
   }
 
   return (
-    <section className="h-screen">
-      <div className="bg-cyan-50 h-[70%] overflow-scroll">
+    <section className="h-[87vh]">
+      <div className="bg-cyan-50 h-[85%] overflow-scroll">
         {messages.map((msg, index) => {
           return (
-            <div key={index} className="flex justify-start">
-              <div className="bg-blue-500 text-white p-2 m-2 rounded-lg w-fit">{msg}</div>
+            <div
+              key={index}
+              className={`flex ${
+                msg.sender === email ? "justify-end" : "justify-start"
+              }`}
+            >
+                <div
+                  className={`${
+                    msg.sender === email
+                      ? "bg-green-500 text-white"
+                      : "bg-blue-500 text-white"
+                  } p-2 m-2 rounded-lg w-fit`}
+                >
+                  <p className="text-sm">{msg.sender}</p>
+                  <p>{msg.message}</p>
+                </div>
             </div>
           );
         })}

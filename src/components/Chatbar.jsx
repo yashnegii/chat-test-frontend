@@ -13,11 +13,50 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { Link, Outlet } from 'react-router-dom';
+import { useUser } from "../contexts/UseUser.jsx";
 
 
 const drawerWidth = 240;
 
 export default function Chatbar() {
+    const { email, setActiveChat , activeChat, socket} = useUser();
+    const [user, setUser] = React.useState([]);
+
+    React.useEffect(() => {
+      // console.log('getting user data...');
+      fetch("http://localhost:3000/chat/getuser", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          // Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.status === "ok") {
+            // console.log(data.users.map((user) => user.email));
+            setUser(data.users.map((user) => user.email));
+            // setUser(data.);
+          } else {
+            console.log("error in getting user data");
+          }
+        });
+    },[])
+
+
+    function chatOpenHandler(e){
+      const selectedUser = e.currentTarget.children[1].children[0].innerText;
+      setActiveChat(selectedUser)
+      if (socket) {
+        const roomId = [email, selectedUser].sort().join("_");
+        console.log("roomId", roomId);
+        socket.emit("joinRoom", { roomId });
+      }
+    }
+
+  console.log(activeChat)
+
   return (
     <Box sx={{ display: 'flex' }}>
       {/* <CssBaseline /> */}
@@ -29,7 +68,7 @@ export default function Chatbar() {
       >
         <Toolbar>
           <Typography variant="h6" noWrap component="div">
-            My Chat App
+            My Chat App welcomes {activeChat?activeChat: ""}
           </Typography>
         </Toolbar>
       </AppBar>
@@ -46,14 +85,14 @@ export default function Chatbar() {
         variant="permanent"
         anchor="left"
       >
-        <Toolbar>All Chats</Toolbar>
+        <Toolbar>{email}'s Chats</Toolbar>
         <Divider />
 
         <List>
-          {['user1', 'user2'].map((text) => (
-            <Link to="/chat" >
+          {user.map((text) => (
+            <Link to="/chat/personalchat"  key={text}>
               <ListItem disablePadding>
-                <ListItemButton>
+                <ListItemButton onClick={chatOpenHandler} >
                   <ListItemIcon>
                     <AccountCircleIcon/>
                   </ListItemIcon>

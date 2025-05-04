@@ -1,15 +1,16 @@
+
 import { useState, createContext } from "react";
 const UserContext = createContext(null);
-import { socket } from '../socket'
+// import { getSocket } from "../socket.js";
 
 
 export function UserProvider({ children }) {
-  socket.on('connect', ()=>{
-    console.log('socket connection')
-  })
+  // console.log(getSocket());
+  const [socketInstance, setSocketInstance] = useState();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
+  const [activeChat, setActiveChat] = useState(null);
 
   return (
     <UserContext.Provider
@@ -20,7 +21,10 @@ export function UserProvider({ children }) {
         setPassword: setPassword,
         loggedIn: loggedIn,
         setLoggedIn: setLoggedIn,
-        socket: socket,
+        socket: socketInstance,
+        setSocketInstance: setSocketInstance,
+        activeChat: activeChat,
+        setActiveChat: setActiveChat,
       }}
     >
       {children}
