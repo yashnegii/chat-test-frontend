@@ -23,26 +23,45 @@ export default function Chatbar() {
     const [user, setUser] = React.useState([]);
 
     React.useEffect(() => {
-      // console.log('getting user data...');
-      fetch("http://localhost:3000/chat/getuser", {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          // Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.status === "ok") {
-            // console.log(data.users.map((user) => user.email));
-            setUser(data.users.map((user) => user.email));
-            // setUser(data.);
-          } else {
-            console.log("error in getting user data");
-          }
-        });
-    },[])
+
+      if(socket){
+        socket.emit('userConnected', email);
+
+        socket.on('userList', (data) => {
+          console.log("userList", data)
+          setUser(data.map((user) => user.email));
+        })
+        console.log("testing user added socket evnet")
+
+        socket.on('userAdded', (data)=>{
+          console.log(data)
+        })
+        
+      }   
+      
+
+
+      // // console.log('getting user data...');
+      // fetch("http://localhost:3000/chat/getuser", {
+      //   method: "GET",
+      //   credentials: "include",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //     // Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+      //   },
+      // })
+      //   .then((res) => res.json())
+      //   .then((data) => {
+      //     if (data.status === "ok") {
+      //       // console.log(data.users.map((user) => user.email));
+      //       setUser(data.users.map((user) => user.email));
+      //       // setUser(data.);
+      //     } else {
+      //       console.log("error in getting user data");
+      //     }
+      //   });
+    },[email, socket])
+
 
 
     function chatOpenHandler(e){
@@ -55,7 +74,7 @@ export default function Chatbar() {
       }
     }
 
-  console.log(activeChat)
+  // console.log(activeChat)
 
   return (
     <Box sx={{ display: 'flex' }}>

@@ -1,4 +1,4 @@
-import { React, useState } from "react";
+import { React,  useState } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "../contexts/UseUser";
 import { toast } from "react-toastify";
@@ -30,6 +30,8 @@ export default function Signup() {
   const { email, setEmail, password, setPassword } = useUser();
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
+
+
   function signUpHandler(e) {
     e.preventDefault();
 
@@ -38,6 +40,24 @@ export default function Signup() {
       setConfirmPassword("");
       return;
     }
+
+
+    // if(socket){
+    //   socket.emit("userCreated", {email, password})
+    //   socket.on('userAdded', (data)=>{
+       
+    //     if(data.success){
+    //       // setEmail(data.email)
+    //       toast.success("Signup successfull")
+    //       navigate("/")
+    //     }else if(data.message){
+    //       toast.error("User Already exists,TRY AGAIN")
+    //     }
+    //   })
+    // }
+
+    
+
     fetch("http://localhost:3000/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
